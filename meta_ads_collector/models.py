@@ -107,6 +107,16 @@ class AdCreative:
     cta_text: str | None = None
     cta_type: str | None = None
 
+    @property
+    def best_video_url(self) -> str | None:
+        """Return the highest quality video URL available."""
+        return self.video_hd_url or self.video_sd_url or self.video_url
+
+    @property
+    def best_image_url(self) -> str | None:
+        """Return the best image URL available (image or video thumbnail)."""
+        return self.image_url or self.thumbnail_url
+
     def to_dict(self) -> dict[str, Any]:
         return {k: v for k, v in asdict(self).items() if v is not None}
 
@@ -227,12 +237,75 @@ class Ad:
     collation_id: str | None = None
     collation_count: int | None = None
 
+    # Display format as reported by Meta (VIDEO, IMAGE, etc.)
+    display_format: str | None = None
+
+    # Whether Meta flagged this ad as containing AI-generated media
+    contains_digital_created_media: bool | None = None
+
+    # Server-side impression ranking index (-1 if unavailable)
+    impressions_index: int | None = None
+
+    # Total active time in seconds as reported by Meta
+    total_active_time: int | None = None
+
+    # Countries the ad targeted or reached
+    targeted_countries: list[str] = field(default_factory=list)
+
     # Raw data for debugging/extensibility
     raw_data: dict[str, Any] | None = field(default=None, repr=False)
 
     # Collection metadata
     collected_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     collection_source: str = "meta_ads_library"
+
+    # ── Computed properties for competitive analysis ──────────────
+
+    @property
+    def days_running(self) -> int:
+        """Days since the ad started delivery. 0 if unknown."""
+        if not self.delivery_start_time:
+            return 0
+        start = self.delivery_start_time
+        if start.tzinfo is None:
+            start = start.replace(tzinfo=timezone.utc)
+        return (datetime.now(timezone.utc) - start).days
+
+    @property
+    def ad_url(self) -> str:
+        """Direct link to this ad in Meta Ad Library."""
+        return f"https://www.facebook.com/ads/library/?id={self.id}"
+
+    @property
+    def is_video(self) -> bool:
+        """True if this ad contains video content."""
+        if self.display_format and self.display_format.upper() == "VIDEO":
+            return True
+        return any(
+            c.video_url or c.video_hd_url or c.video_sd_url
+            for c in self.creatives
+        )
+
+    @property
+    def is_image(self) -> bool:
+        """True if this ad is a static image (not video, not carousel)."""
+        if self.display_format and self.display_format.upper() == "IMAGE":
+            return True
+        if self.is_video or self.is_carousel:
+            return False
+        return any(c.image_url for c in self.creatives)
+
+    @property
+    def is_carousel(self) -> bool:
+        """True if this ad is a carousel or dynamic creative (multiple cards)."""
+        if self.display_format and self.display_format.upper() == "DCO":
+            return True
+        return len(self.creatives) > 1
+
+    @property
+    def primary_creative(self) -> AdCreative | None:
+        """First creative, or None."""
+        return self.creatives[0] if self.creatives else None
 
     def to_dict(self, include_raw: bool = False) -> dict[str, Any]:
         """Convert to dictionary for JSON serialization"""
@@ -278,6 +351,11 @@ class Ad:
             "beneficiary_payers": self.beneficiary_payers,
             "collation_id": self.collation_id,
             "collation_count": self.collation_count,
+            "display_format": self.display_format,
+            "contains_digital_created_media": self.contains_digital_created_media,
+            "impressions_index": self.impressions_index,
+            "total_active_time": self.total_active_time,
+            "targeted_countries": self.targeted_countries,
             "collected_at": self.collected_at.isoformat(),
             "collection_source": self.collection_source,
         }
@@ -586,6 +664,50 @@ class Ad:
             if ad_status_val:
                 is_active = ad_status_val == "ACTIVE"
 
+        # ── Parse new fields ─────────────────────────────────────────
+        # Display format as natively reported by Meta (VIDEO, IMAGE, etc.)
+        display_format = data.get("display_format") or data.get("displayFormat")
+
+        # AI-generated content flag
+        contains_ai = data.get("contains_digital_created_media")
+        if contains_ai is None:
+            contains_ai = data.get("containsDigitalCreatedMedia")
+
+        # Impression ranking index from impressions_with_index
+        impressions_index = None
+        imp_idx_data = data.get("impressions_with_index") or data.get("impressionsWithIndex") or {}
+        if isinstance(imp_idx_data, dict):
+            idx_val = imp_idx_data.get("impressions_index") or imp_idx_data.get("impressionsIndex")
+            if idx_val is not None:
+                try:
+                    impressions_index = int(idx_val)
+                except (ValueError, TypeError):
+                    pass
+
+        # Total active time in seconds
+        total_active_time = data.get("total_active_time") or data.get("totalActiveTime")
+        if total_active_time is not None:
+            try:
+                total_active_time = int(total_active_time)
+            except (ValueError, TypeError):
+                total_active_time = None
+
+        # Targeted or reached countries
+        targeted_countries = (
+            data.get("targeted_or_reached_countries")
+            or data.get("targetedOrReachedCountries")
+            or []
+        )
+
+        # Page like count — also available in search results, not just typeahead
+        if page and page.likes is None:
+            page_likes = data.get("page_like_count") or data.get("pageLikeCount")
+            if page_likes is not None:
+                try:
+                    page.likes = int(page_likes)
+                except (ValueError, TypeError):
+                    pass
+
         return cls(
             id=str(data.get("id") or data.get("adArchiveID") or data.get("ad_archive_id", "")),
             ad_library_id=data.get("adLibraryID") or data.get("ad_library_id"),
@@ -621,6 +743,11 @@ class Ad:
             beneficiary_payers=data.get("beneficiary_payers") or data.get("beneficiaryPayers") or [],
             collation_id=data.get("collation_id") or data.get("collationID"),
             collation_count=data.get("collation_count") or data.get("collationCount"),
+            display_format=display_format,
+            contains_digital_created_media=contains_ai,
+            impressions_index=impressions_index,
+            total_active_time=total_active_time,
+            targeted_countries=targeted_countries,
             raw_data=data,
         )
 

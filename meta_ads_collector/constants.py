@@ -33,7 +33,7 @@ RATE_LIMIT_JITTER_RANGE = (1, 3)  # uniform random jitter bounds
 # ---------------------------------------------------------------------------
 # Pagination
 # ---------------------------------------------------------------------------
-DEFAULT_PAGE_SIZE = 10  # results per API request (max ~30)
+DEFAULT_PAGE_SIZE = 30  # results per API request (max ~30)
 
 # ---------------------------------------------------------------------------
 # GraphQL document IDs (may change with Facebook updates)

@@ -183,6 +183,38 @@ class MetaAdsCollector:
 
         return results
 
+    def find_page(
+        self,
+        query: str,
+        country: str = "US",
+        min_likes: int = 100,
+    ) -> PageSearchResult | None:
+        """Find the best matching page by name, filtering out fake/fan pages.
+
+        Returns the page with the most likes from the typeahead results,
+        or ``None`` if no page meets the ``min_likes`` threshold.
+
+        Args:
+            query: Page name to search for (e.g. "Groww").
+            country: ISO 3166-1 alpha-2 country code.
+            min_likes: Minimum page likes to qualify. Pages below this
+                threshold are considered fake/fan pages and excluded.
+
+        Returns:
+            The best :class:`PageSearchResult`, or ``None``.
+        """
+        pages = self.search_pages(query=query, country=country)
+        if not pages:
+            return None
+        best = max(pages, key=lambda p: p.page_like_count or 0)
+        if (best.page_like_count or 0) < min_likes:
+            logger.warning(
+                "No credible page for '%s' (best match '%s' has %s likes, min=%d)",
+                query, best.page_name, best.page_like_count, min_likes,
+            )
+            return None
+        return best
+
     def collect_by_page_id(
         self,
         page_id: str,
