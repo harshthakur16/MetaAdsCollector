@@ -266,4 +266,5 @@ class TestMappers:
         """Verify sort mapping from CLI strings to API constants."""
         assert map_sort("impressions") == "SORT_BY_TOTAL_IMPRESSIONS"
         assert map_sort("relevancy") is None
+        assert map_sort("newest") == "SORT_BY_RELEVANCY_MONTHLY_GROUPED"
         assert map_sort("unknown") == "SORT_BY_TOTAL_IMPRESSIONS"

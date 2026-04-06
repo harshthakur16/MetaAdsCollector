@@ -17,6 +17,7 @@ from meta_ads_collector.constants import (
     SEARCH_KEYWORD,
     SEARCH_UNORDERED,
     SORT_IMPRESSIONS,
+    SORT_NEWEST,
     SORT_RELEVANCY,
     VALID_SEARCH_TYPES,
 )
@@ -153,6 +154,34 @@ class TestS3SortByRelevancy:
 
         call_kwargs = mock_client.search_ads.call_args
         assert call_kwargs.kwargs.get("sort_mode") == SORT_IMPRESSIONS
+
+    def test_sync_collector_sort_newest_passes_through(self):
+        """When sort_by=SORT_NEWEST, sort_mode should be SORT_NEWEST."""
+        from meta_ads_collector.collector import MetaAdsCollector
+
+        collector = MetaAdsCollector.__new__(MetaAdsCollector)
+        collector.rate_limit_delay = 0
+        collector.jitter = 0
+        collector.stats = {
+            "requests_made": 0,
+            "ads_collected": 0,
+            "pages_fetched": 0,
+            "errors": 0,
+            "start_time": None,
+            "end_time": None,
+        }
+
+        mock_client = MagicMock()
+        mock_client.search_ads.return_value = ({"ads": []}, None)
+        collector.client = mock_client
+
+        from meta_ads_collector.events import EventEmitter
+        collector.event_emitter = EventEmitter()
+
+        list(collector.search(query="test", sort_by=SORT_NEWEST))
+
+        call_kwargs = mock_client.search_ads.call_args
+        assert call_kwargs.kwargs.get("sort_mode") == SORT_NEWEST
 
 
 # ---------------------------------------------------------------------------

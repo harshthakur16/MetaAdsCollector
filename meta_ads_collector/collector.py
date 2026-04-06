@@ -32,6 +32,7 @@ from .constants import (
     SEARCH_PAGE,
     SEARCH_UNORDERED,
     SORT_IMPRESSIONS,
+    SORT_NEWEST,
     SORT_RELEVANCY,
     STATUS_ACTIVE,
     STATUS_ALL,
@@ -91,7 +92,7 @@ class MetaAdsCollector:
     # Sort constants
     SORT_RELEVANCY = SORT_RELEVANCY
     SORT_IMPRESSIONS = SORT_IMPRESSIONS
-    SORT_DATE = None  # Not supported; falls back to server-default
+    SORT_NEWEST = SORT_NEWEST
 
     def __init__(
         self,
@@ -352,7 +353,7 @@ class MetaAdsCollector:
             status: Active status filter
             search_type: Type of search (keyword, exact, page)
             page_ids: Filter by specific page IDs
-            sort_by: Sort order (SORT_BY_TOTAL_IMPRESSIONS or None for relevancy)
+            sort_by: Sort order (SORT_BY_TOTAL_IMPRESSIONS, SORT_BY_RELEVANCY_MONTHLY_GROUPED, or None for relevancy)
             max_results: Maximum number of ads to collect (None for no limit)
             page_size: Results per API request (max ~30)
             progress_callback: Optional callback(collected, total) for progress updates

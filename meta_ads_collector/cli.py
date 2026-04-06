@@ -92,9 +92,9 @@ Examples:
     )
     parser.add_argument(
         "--sort-by",
-        choices=["relevancy", "impressions"],
+        choices=["relevancy", "impressions", "newest"],
         default="impressions",
-        help="Sort order: relevancy (server default) or impressions (default: impressions)",
+        help="Sort order: relevancy (server default), impressions, or newest (default: impressions)",
     )
     parser.add_argument(
         "--page-ids",
@@ -359,6 +359,7 @@ def map_sort(sort_by: str):
     mapping = {
         "relevancy": MetaAdsCollector.SORT_RELEVANCY,
         "impressions": MetaAdsCollector.SORT_IMPRESSIONS,
+        "newest": MetaAdsCollector.SORT_NEWEST,
     }
     return mapping.get(sort_by, MetaAdsCollector.SORT_IMPRESSIONS)
 

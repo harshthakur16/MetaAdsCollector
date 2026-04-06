@@ -25,6 +25,15 @@ class TestParameterValidation:
             country="EG",
         )
 
+    def test_valid_params_newest_sort(self):
+        MetaAdsCollector._validate_params(
+            ad_type="ALL",
+            status="ACTIVE",
+            search_type="KEYWORD_EXACT_PHRASE",
+            sort_by="SORT_BY_RELEVANCY_MONTHLY_GROUPED",
+            country="US",
+        )
+
     def test_invalid_ad_type(self):
         with pytest.raises(InvalidParameterError, match="ad_type"):
             MetaAdsCollector._validate_params("NOPE", "ACTIVE", "KEYWORD_EXACT_PHRASE", None, "US")
@@ -85,3 +94,4 @@ class TestCollectorConstants:
     def test_sort_constants(self):
         assert MetaAdsCollector.SORT_RELEVANCY is None
         assert MetaAdsCollector.SORT_IMPRESSIONS == "SORT_BY_TOTAL_IMPRESSIONS"
+        assert MetaAdsCollector.SORT_NEWEST == "SORT_BY_RELEVANCY_MONTHLY_GROUPED"
