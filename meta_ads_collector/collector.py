@@ -27,6 +27,8 @@ from .constants import (
     DEFAULT_PAGE_SIZE,
     DEFAULT_RATE_LIMIT_DELAY,
     DEFAULT_TIMEOUT,
+    MEDIA_TYPE_ALL,
+    VALID_MEDIA_TYPES,
     SEARCH_EXACT,
     SEARCH_KEYWORD,
     SEARCH_PAGE,
@@ -310,6 +312,7 @@ class MetaAdsCollector:
     def _validate_params(
         ad_type: str,
         status: str,
+        media_type: str,
         search_type: str,
         sort_by: Optional[str],
         country: str,
@@ -319,6 +322,8 @@ class MetaAdsCollector:
             raise InvalidParameterError("ad_type", ad_type, VALID_AD_TYPES)
         if status not in VALID_STATUSES:
             raise InvalidParameterError("status", status, VALID_STATUSES)
+        if media_type not in VALID_MEDIA_TYPES:
+            raise InvalidParameterError("media_type", media_type, VALID_MEDIA_TYPES)
         if search_type not in VALID_SEARCH_TYPES:
             raise InvalidParameterError("search_type", search_type, VALID_SEARCH_TYPES)
         if sort_by not in VALID_SORT_MODES:
@@ -334,6 +339,7 @@ class MetaAdsCollector:
         country: str = "US",
         ad_type: str = AD_TYPE_ALL,
         status: str = STATUS_ACTIVE,
+        media_type: str = MEDIA_TYPE_ALL,
         search_type: str = SEARCH_KEYWORD,
         page_ids: Optional[list[str]] = None,
         sort_by: Optional[str] = SORT_IMPRESSIONS,
@@ -351,6 +357,7 @@ class MetaAdsCollector:
             country: Country code (e.g., "US", "EG", "GB")
             ad_type: Type of ads to search for
             status: Active status filter
+            media_type: Media type filter - ALL, IMAGE, VIDEO, MEME, NONE
             search_type: Type of search (keyword, exact, page)
             page_ids: Filter by specific page IDs
             sort_by: Sort order (SORT_BY_TOTAL_IMPRESSIONS, SORT_BY_RELEVANCY_MONTHLY_GROUPED, or None for relevancy)
@@ -366,7 +373,7 @@ class MetaAdsCollector:
         import uuid
 
         country = country.upper()
-        self._validate_params(ad_type, status, search_type, sort_by, country)
+        self._validate_params(ad_type, status, media_type, search_type, sort_by, country)
 
         self.stats["start_time"] = datetime.now(timezone.utc)
         cursor = None
@@ -411,6 +418,7 @@ class MetaAdsCollector:
                             country=country,
                             ad_type=ad_type,
                             active_status=status,
+                            media_type=media_type,
                             search_type=search_type,
                             page_ids=page_ids,
                             cursor=cursor,
@@ -567,6 +575,7 @@ class MetaAdsCollector:
         country: str = "US",
         ad_type: str = AD_TYPE_ALL,
         status: str = STATUS_ACTIVE,
+        media_type: str = MEDIA_TYPE_ALL,
         search_type: str = SEARCH_KEYWORD,
         page_ids: Optional[list[str]] = None,
         sort_by: Optional[str] = SORT_IMPRESSIONS,
@@ -629,6 +638,7 @@ class MetaAdsCollector:
                 country=country,
                 ad_type=ad_type,
                 status=status,
+                media_type=media_type,
                 search_type=search_type,
                 page_ids=page_ids,
                 sort_by=sort_by,
@@ -666,6 +676,7 @@ class MetaAdsCollector:
         country: str = "US",
         ad_type: str = AD_TYPE_ALL,
         status: str = STATUS_ACTIVE,
+        media_type: str = MEDIA_TYPE_ALL,
         search_type: str = SEARCH_KEYWORD,
         page_ids: Optional[list[str]] = None,
         sort_by: Optional[str] = SORT_IMPRESSIONS,
@@ -714,6 +725,7 @@ class MetaAdsCollector:
             country=country,
             ad_type=ad_type,
             status=status,
+            media_type=media_type,
             search_type=search_type,
             page_ids=page_ids,
             sort_by=sort_by,
@@ -892,6 +904,7 @@ class MetaAdsCollector:
         country: str = "US",
         ad_type: str = AD_TYPE_ALL,
         status: str = STATUS_ACTIVE,
+        media_type: str = MEDIA_TYPE_ALL,
         search_type: str = SEARCH_KEYWORD,
         page_ids: Optional[list[str]] = None,
         sort_by: Optional[str] = SORT_IMPRESSIONS,
@@ -910,6 +923,7 @@ class MetaAdsCollector:
             country=country,
             ad_type=ad_type,
             status=status,
+            media_type=media_type,
             search_type=search_type,
             page_ids=page_ids,
             sort_by=sort_by,
@@ -926,6 +940,7 @@ class MetaAdsCollector:
         country: str = "US",
         ad_type: str = AD_TYPE_ALL,
         status: str = STATUS_ACTIVE,
+        media_type: str = MEDIA_TYPE_ALL,
         search_type: str = SEARCH_KEYWORD,
         page_ids: Optional[list[str]] = None,
         sort_by: Optional[str] = SORT_IMPRESSIONS,
@@ -957,6 +972,7 @@ class MetaAdsCollector:
             country=country,
             ad_type=ad_type,
             status=status,
+            media_type=media_type,
             search_type=search_type,
             page_ids=page_ids,
             sort_by=sort_by,
@@ -1004,6 +1020,7 @@ class MetaAdsCollector:
         country: str = "US",
         ad_type: str = AD_TYPE_ALL,
         status: str = STATUS_ACTIVE,
+        media_type: str = MEDIA_TYPE_ALL,
         search_type: str = SEARCH_KEYWORD,
         page_ids: Optional[list[str]] = None,
         sort_by: Optional[str] = SORT_IMPRESSIONS,
@@ -1066,6 +1083,7 @@ class MetaAdsCollector:
                 country=country,
                 ad_type=ad_type,
                 status=status,
+                media_type=media_type,
                 search_type=search_type,
                 page_ids=page_ids,
                 sort_by=sort_by,
@@ -1118,6 +1136,7 @@ class MetaAdsCollector:
         country: str = "US",
         ad_type: str = AD_TYPE_ALL,
         status: str = STATUS_ACTIVE,
+        media_type: str = MEDIA_TYPE_ALL,
         search_type: str = SEARCH_KEYWORD,
         page_ids: Optional[list[str]] = None,
         sort_by: Optional[str] = SORT_IMPRESSIONS,
@@ -1148,6 +1167,7 @@ class MetaAdsCollector:
                 country=country,
                 ad_type=ad_type,
                 status=status,
+                media_type=media_type,
                 search_type=search_type,
                 page_ids=page_ids,
                 sort_by=sort_by,

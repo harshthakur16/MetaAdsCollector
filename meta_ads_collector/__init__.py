@@ -2,6 +2,13 @@
 
 from .client import MetaAdsClient
 from .collector import MetaAdsCollector
+from .constants import (
+    MEDIA_TYPE_ALL,
+    MEDIA_TYPE_IMAGE,
+    MEDIA_TYPE_MEME,
+    MEDIA_TYPE_NONE,
+    MEDIA_TYPE_VIDEO,
+)
 from .dedup import DeduplicationTracker
 from .events import (
     AD_COLLECTED,
@@ -69,6 +76,12 @@ __all__ = [
     # Logging & Reporting
     "setup_logging",
     "CollectionReport",
+    # Constants
+    "MEDIA_TYPE_ALL",
+    "MEDIA_TYPE_IMAGE",
+    "MEDIA_TYPE_VIDEO",
+    "MEDIA_TYPE_MEME",
+    "MEDIA_TYPE_NONE",
     # Utilities
     "extract_page_id_from_url",
     # Exceptions

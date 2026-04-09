@@ -29,6 +29,8 @@ from .constants import (
     DEFAULT_PAGE_SIZE,
     DEFAULT_RATE_LIMIT_DELAY,
     DEFAULT_TIMEOUT,
+    MEDIA_TYPE_ALL,
+    VALID_MEDIA_TYPES,
     SEARCH_EXACT,
     SEARCH_KEYWORD,
     SEARCH_PAGE,
@@ -152,6 +154,7 @@ class AsyncMetaAdsCollector:
     def _validate_params(
         ad_type: str,
         status: str,
+        media_type: str,
         search_type: str,
         sort_by: str | None,
         country: str,
@@ -161,6 +164,8 @@ class AsyncMetaAdsCollector:
             raise InvalidParameterError("ad_type", ad_type, VALID_AD_TYPES)
         if status not in VALID_STATUSES:
             raise InvalidParameterError("status", status, VALID_STATUSES)
+        if media_type not in VALID_MEDIA_TYPES:
+            raise InvalidParameterError("media_type", media_type, VALID_MEDIA_TYPES)
         if search_type not in VALID_SEARCH_TYPES:
             raise InvalidParameterError("search_type", search_type, VALID_SEARCH_TYPES)
         if sort_by not in VALID_SORT_MODES:
@@ -207,6 +212,7 @@ class AsyncMetaAdsCollector:
         country: str = "US",
         ad_type: str = AD_TYPE_ALL,
         status: str = STATUS_ACTIVE,
+        media_type: str = MEDIA_TYPE_ALL,
         search_type: str = SEARCH_KEYWORD,
         page_ids: list[str] | None = None,
         sort_by: str | None = SORT_IMPRESSIONS,
@@ -228,7 +234,7 @@ class AsyncMetaAdsCollector:
         import uuid
 
         country = country.upper()
-        self._validate_params(ad_type, status, search_type, sort_by, country)
+        self._validate_params(ad_type, status, media_type, search_type, sort_by, country)
 
         self.stats["start_time"] = datetime.now(timezone.utc)
         cursor = None
@@ -268,6 +274,7 @@ class AsyncMetaAdsCollector:
                             country=country,
                             ad_type=ad_type,
                             active_status=status,
+                            media_type=media_type,
                             search_type=search_type,
                             page_ids=page_ids,
                             cursor=cursor,
@@ -397,6 +404,7 @@ class AsyncMetaAdsCollector:
         country: str = "US",
         ad_type: str = AD_TYPE_ALL,
         status: str = STATUS_ACTIVE,
+        media_type: str = MEDIA_TYPE_ALL,
         search_type: str = SEARCH_KEYWORD,
         page_ids: list[str] | None = None,
         sort_by: str | None = SORT_IMPRESSIONS,
@@ -416,6 +424,7 @@ class AsyncMetaAdsCollector:
             country=country,
             ad_type=ad_type,
             status=status,
+            media_type=media_type,
             search_type=search_type,
             page_ids=page_ids,
             sort_by=sort_by,
@@ -434,6 +443,7 @@ class AsyncMetaAdsCollector:
         country: str = "US",
         ad_type: str = AD_TYPE_ALL,
         status: str = STATUS_ACTIVE,
+        media_type: str = MEDIA_TYPE_ALL,
         search_type: str = SEARCH_KEYWORD,
         page_ids: list[str] | None = None,
         sort_by: str | None = SORT_IMPRESSIONS,
@@ -448,9 +458,10 @@ class AsyncMetaAdsCollector:
         ads_dicts: list[dict[str, Any]] = []
         async for ad in self.search(
             query=query, country=country, ad_type=ad_type,
-            status=status, search_type=search_type, page_ids=page_ids,
-            sort_by=sort_by, max_results=max_results, page_size=page_size,
-            filter_config=filter_config, dedup_tracker=dedup_tracker,
+            status=status, media_type=media_type, search_type=search_type,
+            page_ids=page_ids, sort_by=sort_by, max_results=max_results,
+            page_size=page_size, filter_config=filter_config,
+            dedup_tracker=dedup_tracker,
         ):
             ads_dicts.append(ad.to_dict(include_raw=include_raw))
 
@@ -480,6 +491,7 @@ class AsyncMetaAdsCollector:
         country: str = "US",
         ad_type: str = AD_TYPE_ALL,
         status: str = STATUS_ACTIVE,
+        media_type: str = MEDIA_TYPE_ALL,
         search_type: str = SEARCH_KEYWORD,
         page_ids: list[str] | None = None,
         sort_by: str | None = SORT_IMPRESSIONS,
@@ -509,9 +521,10 @@ class AsyncMetaAdsCollector:
 
             async for ad in self.search(
                 query=query, country=country, ad_type=ad_type,
-                status=status, search_type=search_type, page_ids=page_ids,
-                sort_by=sort_by, max_results=max_results, page_size=page_size,
-                filter_config=filter_config, dedup_tracker=dedup_tracker,
+                status=status, media_type=media_type, search_type=search_type,
+                page_ids=page_ids, sort_by=sort_by, max_results=max_results,
+                page_size=page_size, filter_config=filter_config,
+                dedup_tracker=dedup_tracker,
             ):
                 primary = ad.creatives[0] if ad.creatives else None
                 row = {
